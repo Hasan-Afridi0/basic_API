@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student Dashboard</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    table, th, td { border: 1px solid black; border-collapse: collapse; padding: 8px; }
+    input { margin: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Student Data Viewer</h1>
+
+  <form id="filterForm">
+    Name: <input type="text" name="name" />
+    Min Grade: <input type="number" name="min_grade" />
+    Max Grade: <input type="number" name="max_grade" />
+    <button type="submit">Get Students</button>
+    <button type="button" id="downloadBtn">Download CSV</button>
+  </form>
+
+  <br />
+  <table id="results">
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>Grade</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const apiKey = "12345";
+
+    document.getElementById("filterForm").onsubmit = async function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const params = new URLSearchParams(new FormData(form));
+      params.append("api_key", apiKey);
+
+      const res = await fetch(`/api/students?${params}`);
+      const data = await res.json();
+
+      const tbody = document.querySelector("#results tbody");
+      tbody.innerHTML = "";
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${row.id}</td><td>${row.name}</td><td>${row.grade}</td>`;
+        tbody.appendChild(tr);
+      });
+    };
+
+    document.getElementById("downloadBtn").onclick = function () {
+      const form = document.getElementById("filterForm");
+      const params = new URLSearchParams(new FormData(form));
+      params.append("api_key", apiKey);
+      window.open(`/api/students/download?${params}`);
+    };
+  </script>
+</body>
+</html>
