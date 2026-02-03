@@ -63,7 +63,9 @@ You can modify the `API_KEY` in `app.py`.
 ├── templates/
 │ └── students.html
 ├── static/ (optional for styles/scripts)
-├── students.csv (sample data)
+├── data/
+│ ├── students.csv (sample data)
+│ └── coffee.csv (sample data)
 
 Copy
 Edit
