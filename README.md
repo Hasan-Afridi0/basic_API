@@ -122,13 +122,15 @@ Returns all coffee records, or filtered by:
 ### 6) Free physics resource database functions
 
 #### `GET /api/resources`
-Returns curated free resources with category/type grouping.
+Returns built-in website resources (no external dependency) grouped by category.
 
 Fields:
 - `category` (`Universal`, `Equations`, `Definitions`)
 - `title`
 - `description`
-- `url`
+- `equation`
+- `practice_prompt`
+- `diagram_steps`
 
 Optional query params:
 - `category`
@@ -149,7 +151,7 @@ The dashboard includes:
 - level studies roadmap
 - course database viewer (definitions + equations)
 - interactive question diagram cards
-- free physics resource explorer (universal/equations/definitions)
+- built-in physics resource explorer with internal definitions/equations/diagram prompts
 
 ---
 
@@ -165,6 +167,19 @@ The dashboard includes:
 └── templates/
     └── students.html
 ```
+
+---
+
+## 🔗 Repository URL
+
+If your repository URL was modified, use the updated clone URL below:
+
+```bash
+git clone https://github.com/yourusername/basic_API.git
+cd basic_API
+```
+
+> Replace `yourusername` with your GitHub username or organization.
 
 ---
 

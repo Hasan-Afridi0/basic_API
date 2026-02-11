@@ -69,17 +69,15 @@ init_courses_database(COURSES_DB_PATH)
 
 def init_resource_database(db_path):
     seed_resources = [
-        ("Universal", "HyperPhysics (Georgia State University)", "Concept maps, formulas, and interconnected physics definitions.", "https://hyperphysics.phy-astr.gsu.edu/"),
-        ("Universal", "The Physics Hypertextbook", "Free textbook-style explanations with equations and derivations.", "https://physics.info/"),
-        ("Universal", "Wolfram Alpha (Physics)", "Computational lookups for constants, equations, and definitions.", "https://www.wolframalpha.com/"),
-        ("Universal", "Physics Pro - Notes & Formulas", "Large formula and definition collection in app/web format.", "https://play.google.com/store/apps/details?id=de.eiswuxe.physicpro"),
-        ("Universal", "Einstein-Online", "Modern physics and relativity concept dictionary.", "https://www.einstein-online.info/en/"),
-        ("Equations", "Physics Formulae", "Easy-to-browse repository of formulas and constants.", "https://www.physicsformulae.com/"),
-        ("Equations", "Cambridge Handbook of Physics Formulas (PDF)", "Comprehensive handbook of core formulas for quick revision.", "https://www.scribd.com/document/379748624/Cambridge-Handbook-of-Physics-Formulas"),
-        ("Equations", "GeeksforGeeks Physics Formula List", "Topic-wise list of formulas from mechanics to modern physics.", "https://www.geeksforgeeks.org/physics-formulas/"),
-        ("Definitions", "SlideShare - Physics Definitions", "Collections of curriculum-style term definitions.", "https://www.slideshare.net/search/slideshow?searchfrom=header&q=physics+definitions"),
-        ("Definitions", "Scribd - Physics Formulae and Definitions", "User-uploaded formula and definition study guides.", "https://www.scribd.com/search?query=Physics%20Formulae%20and%20Definitions"),
-        ("Definitions", "WJEC Physics Terms, Definitions & Units", "Glossary-focused definitions with units for exam prep.", "https://resource.download.wjec.co.uk.s3.amazonaws.com/vtc/2014-15/14-15_18/pdf/Terms,%20Definitions%20and%20Units.pdf")
+        ("Universal", "Mechanics Definition Atlas", "Curriculum-first definitions that map motion, force, and energy concepts together.", "F = ma", "Explain how net force changes motion in one sentence.", "Start from motion state → apply force vector → observe acceleration."),
+        ("Universal", "Thermal Physics Core", "Built-in concept bank for temperature, heat transfer, and thermodynamic systems.", "Q = mcΔT", "What variables increase heat needed for a temperature change?", "Choose material → set mass → adjust ΔT → view heat requirement."),
+        ("Universal", "Electricity & Fields Studio", "Integrated notes for electric fields, current, voltage, and circuits.", "V = IR", "How does increasing resistance affect current at fixed voltage?", "Set voltage source → vary resistor → observe current flow arrows."),
+        ("Equations", "Kinematics Equation Set", "SUVAT equation pack with usage hints and variable definitions.", "s = ut + 1/2 at²", "When should you use this equation instead of v = u + at?", "Input known variables → highlight unknown → generate solve path."),
+        ("Equations", "Momentum & Energy Toolbox", "Conservation equations for momentum and energy with worked structures.", "p = mv", "How does doubling mass impact momentum at constant velocity?", "Compare two objects → compute momentum bars → inspect conservation."),
+        ("Equations", "Waves and Optics Formula Board", "Frequency, wavelength, and wave speed equations for quick retrieval.", "v = fλ", "If frequency rises while speed stays fixed, what happens to wavelength?", "Lock wave speed → increase frequency slider → shrink wavelength trace."),
+        ("Definitions", "Physics Terms 250", "Internal glossary for common school and exam physics terminology.", "ρ = m/V", "Define density and identify each variable in the equation.", "Pick a term card → reveal definition → test with quick prompt."),
+        ("Definitions", "Units & Dimensions Mentor", "SI units, dimensions, and conversion logic in one place.", "[Force] = MLT⁻²", "Why is dimensional analysis useful for checking answers?", "Select quantity → inspect unit tree → validate equation dimensions."),
+        ("Definitions", "Relativity Mini Dictionary", "Concise modern-physics terms focused on spacetime and relativity basics.", "E = mc²", "What does mass-energy equivalence imply conceptually?", "Toggle rest mass and velocity context → inspect energy interpretation.")
     ]
 
     with sqlite3.connect(db_path) as conn:
@@ -90,20 +88,33 @@ def init_resource_database(db_path):
                 category TEXT NOT NULL,
                 title TEXT NOT NULL,
                 description TEXT NOT NULL,
-                url TEXT NOT NULL
+                equation TEXT NOT NULL,
+                practice_prompt TEXT NOT NULL,
+                diagram_steps TEXT NOT NULL
             )
             """
         )
 
-        existing_rows = conn.execute("SELECT COUNT(*) FROM resources").fetchone()[0]
-        if existing_rows == 0:
-            conn.executemany(
-                """
-                INSERT INTO resources (category, title, description, url)
-                VALUES (?, ?, ?, ?)
-                """,
-                seed_resources,
-            )
+        columns = {
+            row[1]
+            for row in conn.execute("PRAGMA table_info(resources)").fetchall()
+        }
+
+        if "equation" not in columns:
+            conn.execute("ALTER TABLE resources ADD COLUMN equation TEXT NOT NULL DEFAULT ''")
+        if "practice_prompt" not in columns:
+            conn.execute("ALTER TABLE resources ADD COLUMN practice_prompt TEXT NOT NULL DEFAULT ''")
+        if "diagram_steps" not in columns:
+            conn.execute("ALTER TABLE resources ADD COLUMN diagram_steps TEXT NOT NULL DEFAULT ''")
+
+        conn.execute("DELETE FROM resources")
+        conn.executemany(
+            """
+            INSERT INTO resources (category, title, description, equation, practice_prompt, diagram_steps)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            seed_resources,
+        )
 
 init_resource_database(COURSES_DB_PATH)
 
@@ -263,7 +274,7 @@ def get_resource_data():
     search = request.args.get('search')
 
     query = """
-        SELECT id, category, title, description, url
+        SELECT id, category, title, description, equation, practice_prompt, diagram_steps
         FROM resources
         WHERE 1=1
     """

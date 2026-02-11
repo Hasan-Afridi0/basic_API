@@ -719,9 +719,9 @@
       </div>
 
       <div class="section-card" id="resources">
-        <h2>Top free physics resources database</h2>
+        <h2>Built-in physics resources library</h2>
         <p class="muted">
-          Curated universal references, equation repositories, and definition libraries.
+          All definitions, equations, and guided question diagrams are hosted directly inside your website.
         </p>
 
         <form id="resourceForm" class="resource-controls">
@@ -946,7 +946,9 @@
           <div class="badge success">${resource.category}</div>
           <h4>${resource.title}</h4>
           <p>${resource.description}</p>
-          <a href="${resource.url}" target="_blank" rel="noopener noreferrer">Open resource</a>
+          <div class="equation">${resource.equation}</div>
+          <p><strong>Practice:</strong> ${resource.practice_prompt}</p>
+          <p><strong>Interactive diagram flow:</strong> ${resource.diagram_steps}</p>
         `;
         resourceGrid.appendChild(card);
       });
