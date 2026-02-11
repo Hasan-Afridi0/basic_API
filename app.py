@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, send_file, render_template, Response
 import pandas as pd
 import os
+import sqlite3
 
 # 🔐 API Key
 API_KEY = "12345"
@@ -8,11 +9,103 @@ API_KEY = "12345"
 
 from flask import render_template
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+COURSES_DB_PATH = os.path.join(DATA_DIR, 'courses.db')
+
+def load_csv(path, *, name):
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"Missing {name} data at {path}. Please ensure the CSV exists."
+        )
+    return pd.read_csv(path)
+
 # Load CSV
-students_df = pd.read_csv('./practice/My_Work/students.csv')
+students_path = os.path.join(DATA_DIR, 'students.csv')
+students_df = load_csv(students_path, name="students")
 students_df.columns = students_df.columns.str.strip().str.lower()
-coffee_df = pd.read_csv('./complete-pandas-tutorial/warmup-data/coffee.csv')
+
+coffee_path = os.path.join(DATA_DIR, 'coffee.csv')
+coffee_df = load_csv(coffee_path, name="coffee")
 coffee_df.rename(columns={'coffee type': 'coffee_type'}, inplace=True)
+
+def init_courses_database(db_path):
+    seed_courses = [
+        ("Physics", "Level 1", "Kinematics", "Motion described by displacement, velocity, and acceleration.", "v = u + at", "How does acceleration affect velocity over time?", "Velocity-Time Slope"),
+        ("Physics", "Level 2", "Forces", "Net force determines acceleration based on Newton's second law.", "F = ma", "What happens to acceleration if force doubles and mass stays fixed?", "Force-Acceleration Map"),
+        ("Physics", "Level 3", "Energy", "Energy is conserved while transforming between forms.", "W = ΔKE", "How can work done change an object's kinetic energy?", "Energy Transfer Cycle"),
+        ("Math", "Level 1", "Linear Expressions", "Linear forms model constant-rate change.", "y = mx + b", "How does changing m affect the graph slope?", "Slope Intercept Diagram"),
+        ("Math", "Level 2", "Quadratics", "Quadratic functions create parabolic relationships.", "x = (-b ± √(b² - 4ac)) / 2a", "How does the discriminant affect number of roots?", "Quadratic Roots Tree"),
+        ("Math", "Level 3", "Trigonometry", "Trigonometric ratios link angles and side lengths.", "sin²θ + cos²θ = 1", "How does cosine change as angle increases from 0° to 90°?", "Unit Circle Progression")
+    ]
+
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS courses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                subject TEXT NOT NULL,
+                level TEXT NOT NULL,
+                topic TEXT NOT NULL,
+                definition TEXT NOT NULL,
+                equation TEXT NOT NULL,
+                question TEXT NOT NULL,
+                diagram_title TEXT NOT NULL
+            )
+            """
+        )
+
+        existing_rows = conn.execute("SELECT COUNT(*) FROM courses").fetchone()[0]
+        if existing_rows == 0:
+            conn.executemany(
+                """
+                INSERT INTO courses (subject, level, topic, definition, equation, question, diagram_title)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                seed_courses,
+            )
+
+init_courses_database(COURSES_DB_PATH)
+
+def init_resource_database(db_path):
+    seed_resources = [
+        ("Universal", "HyperPhysics (Georgia State University)", "Concept maps, formulas, and interconnected physics definitions.", "https://hyperphysics.phy-astr.gsu.edu/"),
+        ("Universal", "The Physics Hypertextbook", "Free textbook-style explanations with equations and derivations.", "https://physics.info/"),
+        ("Universal", "Wolfram Alpha (Physics)", "Computational lookups for constants, equations, and definitions.", "https://www.wolframalpha.com/"),
+        ("Universal", "Physics Pro - Notes & Formulas", "Large formula and definition collection in app/web format.", "https://play.google.com/store/apps/details?id=de.eiswuxe.physicpro"),
+        ("Universal", "Einstein-Online", "Modern physics and relativity concept dictionary.", "https://www.einstein-online.info/en/"),
+        ("Equations", "Physics Formulae", "Easy-to-browse repository of formulas and constants.", "https://www.physicsformulae.com/"),
+        ("Equations", "Cambridge Handbook of Physics Formulas (PDF)", "Comprehensive handbook of core formulas for quick revision.", "https://www.scribd.com/document/379748624/Cambridge-Handbook-of-Physics-Formulas"),
+        ("Equations", "GeeksforGeeks Physics Formula List", "Topic-wise list of formulas from mechanics to modern physics.", "https://www.geeksforgeeks.org/physics-formulas/"),
+        ("Definitions", "SlideShare - Physics Definitions", "Collections of curriculum-style term definitions.", "https://www.slideshare.net/search/slideshow?searchfrom=header&q=physics+definitions"),
+        ("Definitions", "Scribd - Physics Formulae and Definitions", "User-uploaded formula and definition study guides.", "https://www.scribd.com/search?query=Physics%20Formulae%20and%20Definitions"),
+        ("Definitions", "WJEC Physics Terms, Definitions & Units", "Glossary-focused definitions with units for exam prep.", "https://resource.download.wjec.co.uk.s3.amazonaws.com/vtc/2014-15/14-15_18/pdf/Terms,%20Definitions%20and%20Units.pdf")
+    ]
+
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS resources (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                category TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                url TEXT NOT NULL
+            )
+            """
+        )
+
+        existing_rows = conn.execute("SELECT COUNT(*) FROM resources").fetchone()[0]
+        if existing_rows == 0:
+            conn.executemany(
+                """
+                INSERT INTO resources (category, title, description, url)
+                VALUES (?, ?, ?, ?)
+                """,
+                seed_resources,
+            )
+
+init_resource_database(COURSES_DB_PATH)
 
 app = Flask(__name__)
 
@@ -20,6 +113,10 @@ app = Flask(__name__)
 from functools import wraps
 
 from flask import render_template
+
+@app.route('/')
+def index():
+    return render_template('students.html')
 
 @app.route('/students-view')
 def students_view():
@@ -130,6 +227,64 @@ def get_coffee_data():
         data = coffee_df.to_dict(orient='records')
 
     return jsonify(data)
+
+@app.route('/api/courses', methods=['GET'])
+@require_api_key
+def get_courses_data():
+    subject = request.args.get('subject')
+    level = request.args.get('level')
+
+    query = """
+        SELECT id, subject, level, topic, definition, equation, question, diagram_title
+        FROM courses
+        WHERE 1=1
+    """
+    params = []
+
+    if subject:
+        query += " AND subject = ?"
+        params.append(subject)
+    if level:
+        query += " AND level = ?"
+        params.append(level)
+
+    query += " ORDER BY subject, level, id"
+
+    with sqlite3.connect(COURSES_DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(query, params).fetchall()
+
+    return jsonify([dict(row) for row in rows])
+
+@app.route('/api/resources', methods=['GET'])
+@require_api_key
+def get_resource_data():
+    category = request.args.get('category')
+    search = request.args.get('search')
+
+    query = """
+        SELECT id, category, title, description, url
+        FROM resources
+        WHERE 1=1
+    """
+    params = []
+
+    if category:
+        query += " AND category = ?"
+        params.append(category)
+
+    if search:
+        query += " AND (title LIKE ? OR description LIKE ?)"
+        wildcard = f"%{search}%"
+        params.extend([wildcard, wildcard])
+
+    query += " ORDER BY category, title"
+
+    with sqlite3.connect(COURSES_DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(query, params).fetchall()
+
+    return jsonify([dict(row) for row in rows])
 
 # Set max upload size (optional)
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB max

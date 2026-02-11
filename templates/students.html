@@ -1,34 +1,815 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Student Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>STEMora • Student Insights</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    table, th, td { border: 1px solid black; border-collapse: collapse; padding: 8px; }
-    input { margin: 5px; }
+    :root {
+      color-scheme: light;
+      --bg: #f5f6fb;
+      --surface: #ffffff;
+      --ink: #121525;
+      --muted: #566077;
+      --accent: #5a48ff;
+      --accent-strong: #3728d6;
+      --glow: rgba(90, 72, 255, 0.2);
+      --border: #e5e7f2;
+      --success: #19b37f;
+      --warning: #ffb200;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(245, 246, 251, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), #9c7bff);
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 10px 25px var(--glow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-cta {
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 12px 25px var(--glow);
+    }
+
+    .hero {
+      padding: 72px 0 56px;
+    }
+
+    .hero-grid {
+      display: grid;
+      gap: 36px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      align-items: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 4vw, 3.6rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 18px;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin-bottom: 26px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .button {
+      padding: 12px 22px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .button.primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 18px 30px var(--glow);
+    }
+
+    .button.secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .hero-card {
+      background: var(--surface);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 25px 60px rgba(18, 21, 37, 0.08);
+      border: 1px solid var(--border);
+    }
+
+    .hero-card h3 {
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(90, 72, 255, 0.12);
+      color: var(--accent-strong);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 16px;
+      background: #f7f7ff;
+      border: 1px solid var(--border);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.35rem;
+      margin-bottom: 6px;
+    }
+
+    .sections {
+      padding: 24px 0 72px;
+      display: grid;
+      gap: 24px;
+    }
+
+    .section-card {
+      background: var(--surface);
+      border-radius: 24px;
+      padding: 28px;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 30px rgba(18, 21, 37, 0.06);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .feature {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: #fbfbff;
+    }
+
+    .feature span {
+      display: inline-flex;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      align-items: center;
+      justify-content: center;
+      background: rgba(90, 72, 255, 0.12);
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .insights-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .insight {
+      border-radius: 20px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      background: linear-gradient(140deg, #f9f9ff, #ffffff);
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .filters label {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .filters input {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fafaff;
+    }
+
+    .table-wrap {
+      margin-top: 18px;
+      overflow-x: auto;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    th {
+      background: #f5f6ff;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    tbody tr:hover {
+      background: #f7f7ff;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .badge.success {
+      background: rgba(25, 179, 127, 0.12);
+      color: var(--success);
+    }
+
+    .badge.warning {
+      background: rgba(255, 178, 0, 0.15);
+      color: var(--warning);
+    }
+
+    .footer {
+      padding: 40px 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .diagram-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+      align-items: start;
+    }
+
+    .diagram-shell {
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: #f7f7ff;
+      display: grid;
+      gap: 14px;
+    }
+
+    .diagram-node {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      background: white;
+      cursor: pointer;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .diagram-node strong {
+      font-size: 0.95rem;
+    }
+
+    .diagram-node span {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .diagram-node.active {
+      border-color: var(--accent);
+      box-shadow: 0 12px 24px var(--glow);
+    }
+
+    .diagram-panel {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: white;
+      min-height: 190px;
+    }
+
+    .diagram-panel h3 {
+      margin-bottom: 10px;
+    }
+
+    .course-filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+      align-items: end;
+    }
+
+    .course-filters select {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fafaff;
+    }
+
+    .course-layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.4fr) minmax(260px, 1fr);
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .course-list {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      background: white;
+    }
+
+    .course-item {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+      padding: 14px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .course-item:last-child {
+      border-bottom: none;
+    }
+
+    .course-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .course-item.active {
+      background: #f1efff;
+    }
+
+    .question-diagram {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: white;
+      padding: 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .equation {
+      font-family: "Fira Code", monospace;
+      background: #f6f8ff;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--accent-strong);
+      font-size: 0.9rem;
+    }
+
+    .resource-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+      align-items: end;
+    }
+
+    .resource-controls input,
+    .resource-controls select {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fafaff;
+    }
+
+    .resource-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+    }
+
+    .resource-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      background: #fff;
+      display: grid;
+      gap: 8px;
+    }
+
+    .resource-card a {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    @media (max-width: 860px) {
+      .course-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .nav-links {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Student Data Viewer</h1>
+  <nav class="nav">
+    <div class="container nav-content">
+      <div class="logo">
+        <div class="logo-badge">B</div>
+        STEMora
+      </div>
+      <div class="nav-links">
+        <a href="#experience">Experience</a>
+        <a href="#analytics">Analytics</a>
+        <a href="#students">Students</a>
+      </div>
+      <a class="nav-cta" href="#students">Launch Dashboard</a>
+    </div>
+  </nav>
 
-  <form id="filterForm">
-    Name: <input type="text" name="name" />
-    Min Grade: <input type="number" name="min_grade" />
-    Max Grade: <input type="number" name="max_grade" />
-    <button type="submit">Get Students</button>
-    <button type="button" id="downloadBtn">Download CSV</button>
-  </form>
+  <main class="container">
+    <section class="hero" id="experience">
+      <div class="hero-grid">
+        <div>
+          <div class="pill">✨ Personalized learning at scale</div>
+          <h1>STEMora inspires physics and math learners with adaptive insights.</h1>
+          <p>
+            Transform raw student data into learning moments. Build clear progress stories,
+            spotlight growth opportunities, and deliver curated practice plans in minutes.
+          </p>
+          <div class="hero-actions">
+            <button class="button primary">Start a Learning Path</button>
+            <button class="button secondary">Explore Analytics</button>
+          </div>
+          <div class="stats">
+            <div class="stat">
+              <strong>98%</strong>
+              Activity completion
+            </div>
+            <div class="stat">
+              <strong>4.9/5</strong>
+              Learner satisfaction
+            </div>
+            <div class="stat">
+              <strong>25+</strong>
+              Data signals tracked
+            </div>
+          </div>
+        </div>
+        <div class="hero-card">
+          <h3>Today’s learning momentum</h3>
+          <p>Track your cohort’s mastery and prioritize personalized coaching.</p>
+          <div class="insights-grid">
+            <div class="insight">
+              <div class="badge success">+12% retention</div>
+              <p>Adaptive revision plans boosted weekly retention.</p>
+            </div>
+            <div class="insight">
+              <div class="badge warning">Focus area</div>
+              <p>Algebra foundations need a confidence refresh.</p>
+            </div>
+            <div class="insight">
+              <div class="badge success">Top cohort</div>
+              <p>Grade 11 showed the strongest growth curve.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  <br />
-  <table id="results">
-    <thead>
-      <tr><th>ID</th><th>Name</th><th>Grade</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    <section class="sections" id="analytics">
+      <div class="section-card">
+        <h2>What makes STEMora feel different</h2>
+        <p class="muted">
+          Intelligent curriculum sequencing meets joyful practice. Everything is
+          designed to feel like an achievement, not a chore.
+        </p>
+        <div class="features">
+          <div class="feature">
+            <span>01</span>
+            <h4>Adaptive focus</h4>
+            <p>Smart playlists update in real time based on every attempt.</p>
+          </div>
+          <div class="feature">
+            <span>02</span>
+            <h4>Coaching cues</h4>
+            <p>Give students direct next steps without manual analysis.</p>
+          </div>
+          <div class="feature">
+            <span>03</span>
+            <h4>Growth dashboards</h4>
+            <p>Surface trends, patterns, and readiness across the cohort.</p>
+          </div>
+          <div class="feature">
+            <span>04</span>
+            <h4>Confidence metrics</h4>
+            <p>See readiness and mastery, not just raw scores.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h2>Interactive learning loop</h2>
+        <p class="muted">
+          Tap each stage to reveal how data flows from assessment to a personalized plan.
+        </p>
+        <div class="diagram-grid">
+          <div class="diagram-shell" role="list">
+            <button class="diagram-node active" type="button" data-title="Diagnose"
+              data-body="Spot misconceptions instantly with formative checks and exit tickets."
+              data-metric="Accuracy gap: 12%">
+              <strong>01 · Diagnose</strong>
+              <span>Assess</span>
+            </button>
+            <button class="diagram-node" type="button" data-title="Plan"
+              data-body="Auto-build practice paths that target prerequisite skills."
+              data-metric="Next focus: Algebra A2">
+              <strong>02 · Plan</strong>
+              <span>Personalize</span>
+            </button>
+            <button class="diagram-node" type="button" data-title="Practice"
+              data-body="Deliver bite-size sessions with immediate feedback loops."
+              data-metric="Avg. session: 18 min">
+              <strong>03 · Practice</strong>
+              <span>Engage</span>
+            </button>
+            <button class="diagram-node" type="button" data-title="Coach"
+              data-body="Send nudges, celebrate wins, and close gaps with targeted coaching."
+              data-metric="Coach nudges: 4 today">
+              <strong>04 · Coach</strong>
+              <span>Support</span>
+            </button>
+          </div>
+          <div class="diagram-panel" aria-live="polite">
+            <h3 id="diagramTitle">Diagnose</h3>
+            <p id="diagramBody">
+              Spot misconceptions instantly with formative checks and exit tickets.
+            </p>
+            <div class="badge success" id="diagramMetric">Accuracy gap: 12%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h2>Level studies roadmap</h2>
+        <p class="muted">
+          Structured study tracks for each level across physics and math.
+        </p>
+        <div class="features">
+          <div class="feature">
+            <span>L1</span>
+            <h4>Foundation</h4>
+            <p>Units, measurement, linear basics, and essential problem solving.</p>
+          </div>
+          <div class="feature">
+            <span>L2</span>
+            <h4>Core Builder</h4>
+            <p>Newton laws, equations, geometry, and weekly guided practice.</p>
+          </div>
+          <div class="feature">
+            <span>L3</span>
+            <h4>Mastery Path</h4>
+            <p>Quadratics, trigonometry, deeper modeling, and timed question sets.</p>
+          </div>
+          <div class="feature">
+            <span>L4</span>
+            <h4>Advanced Lab</h4>
+            <p>Electric circuits and complex applications with project-based study.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card" id="courses">
+        <h2>Course database: definitions, equations, and question diagrams</h2>
+        <p class="muted">
+          Pull curriculum content from the course database and interact with each question diagram.
+        </p>
+
+        <form id="courseForm" class="course-filters">
+          <div>
+            <label for="course-subject">Subject</label>
+            <select id="course-subject" name="subject">
+              <option value="">All subjects</option>
+              <option value="Physics">Physics</option>
+              <option value="Math">Math</option>
+            </select>
+          </div>
+          <div>
+            <label for="course-level">Level</label>
+            <select id="course-level" name="level">
+              <option value="">All levels</option>
+              <option value="Level 1">Level 1</option>
+              <option value="Level 2">Level 2</option>
+              <option value="Level 3">Level 3</option>
+              <option value="Level 4">Level 4</option>
+            </select>
+          </div>
+          <button class="button primary" type="submit">Load courses</button>
+        </form>
+
+        <div class="course-layout">
+          <div id="courseList" class="course-list"></div>
+          <div class="question-diagram" aria-live="polite">
+            <h3 id="courseTopic">Choose a course item</h3>
+            <p id="courseDefinition">Definition will appear here.</p>
+            <div class="equation" id="courseEquation">Equation</div>
+            <p id="courseQuestion">Question prompt will appear here.</p>
+            <div class="badge success" id="courseDiagram">Interactive diagram title</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card" id="resources">
+        <h2>Top free physics resources database</h2>
+        <p class="muted">
+          Curated universal references, equation repositories, and definition libraries.
+        </p>
+
+        <form id="resourceForm" class="resource-controls">
+          <div>
+            <label for="resource-category">Category</label>
+            <select id="resource-category" name="category">
+              <option value="">All categories</option>
+              <option value="Universal">Universal</option>
+              <option value="Equations">Equations</option>
+              <option value="Definitions">Definitions</option>
+            </select>
+          </div>
+          <div>
+            <label for="resource-search">Search</label>
+            <input id="resource-search" name="search" placeholder="e.g. formulas" />
+          </div>
+          <button class="button primary" type="submit">Load resources</button>
+        </form>
+
+        <div id="resourceGrid" class="resource-grid"></div>
+      </div>
+
+      <div class="section-card" id="students">
+        <h2>Student analytics workspace</h2>
+        <p class="muted">
+          Filter your roster and export tailored insights. Track physics and math
+          levels, topics, lectures, question volume, and level study plans.
+        </p>
+
+        <form id="filterForm" class="filters">
+          <div>
+            <label for="student-name">Student name</label>
+            <input id="student-name" type="text" name="name" placeholder="e.g. Amina" />
+          </div>
+          <div>
+            <label for="min-grade">Min grade</label>
+            <input id="min-grade" type="number" name="min_grade" placeholder="e.g. 70" />
+          </div>
+          <div>
+            <label for="max-grade">Max grade</label>
+            <input id="max-grade" type="number" name="max_grade" placeholder="e.g. 98" />
+          </div>
+          <div class="hero-actions">
+            <button class="button primary" type="submit">Refresh insights</button>
+            <button class="button secondary" type="button" id="downloadBtn">Export CSV</button>
+          </div>
+        </form>
+
+        <div class="table-wrap">
+          <table id="results">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Subject</th>
+                <th>Level</th>
+                <th>Topic</th>
+                <th>Lecture</th>
+                <th>Questions</th>
+                <th>Interactive Diagram</th>
+                <th>Level Study</th>
+                <th>Grade</th>
+                <th>Momentum</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    Crafted for learning teams who believe every student can shine.
+  </footer>
 
   <script>
     const apiKey = "12345";
+
+    const momentumBadge = (grade) => {
+      if (grade >= 90) {
+        return '<span class="badge success">Accelerating</span>';
+      }
+      if (grade >= 75) {
+        return '<span class="badge success">On track</span>';
+      }
+      return '<span class="badge warning">Needs focus</span>';
+    };
 
     document.getElementById("filterForm").onsubmit = async function (e) {
       e.preventDefault();
@@ -44,7 +825,19 @@
 
       data.forEach(row => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${row.id}</td><td>${row.name}</td><td>${row.grade}</td>`;
+        tr.innerHTML = `
+          <td>${row.id}</td>
+          <td>${row.name}</td>
+          <td>${row.subject ?? "-"}</td>
+          <td>${row.level ?? "-"}</td>
+          <td>${row.topic ?? "-"}</td>
+          <td>${row.lecture ?? "-"}</td>
+          <td>${row.questions ?? "-"}</td>
+          <td>${row.interactive_diagram ?? "-"}</td>
+          <td>${row.level_study ?? "-"}</td>
+          <td>${row.grade}</td>
+          <td>${momentumBadge(row.grade)}</td>
+        `;
         tbody.appendChild(tr);
       });
     };
@@ -55,6 +848,125 @@
       params.append("api_key", apiKey);
       window.open(`/api/students/download?${params}`);
     };
+
+    const diagramNodes = document.querySelectorAll(".diagram-node");
+    const diagramTitle = document.getElementById("diagramTitle");
+    const diagramBody = document.getElementById("diagramBody");
+    const diagramMetric = document.getElementById("diagramMetric");
+
+    diagramNodes.forEach((node) => {
+      node.addEventListener("click", () => {
+        diagramNodes.forEach((item) => item.classList.remove("active"));
+        node.classList.add("active");
+        diagramTitle.textContent = node.dataset.title;
+        diagramBody.textContent = node.dataset.body;
+        diagramMetric.textContent = node.dataset.metric;
+      });
+    });
+
+    const courseForm = document.getElementById("courseForm");
+    const courseList = document.getElementById("courseList");
+    const courseTopic = document.getElementById("courseTopic");
+    const courseDefinition = document.getElementById("courseDefinition");
+    const courseEquation = document.getElementById("courseEquation");
+    const courseQuestion = document.getElementById("courseQuestion");
+    const courseDiagram = document.getElementById("courseDiagram");
+
+    const renderCourseDetails = (course) => {
+      courseTopic.textContent = `${course.subject} • ${course.level} • ${course.topic}`;
+      courseDefinition.textContent = course.definition;
+      courseEquation.textContent = course.equation;
+      courseQuestion.textContent = `Question: ${course.question}`;
+      courseDiagram.textContent = `Diagram: ${course.diagram_title}`;
+    };
+
+    const renderCourseList = (courses) => {
+      courseList.innerHTML = "";
+
+      if (!courses.length) {
+        courseList.innerHTML = '<div class="course-item">No courses match this filter.</div>';
+        return;
+      }
+
+      courses.forEach((course, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "course-item";
+        button.innerHTML = `
+          <strong>${course.subject} • ${course.level}</strong>
+          <div>${course.topic}</div>
+        `;
+
+        if (index === 0) {
+          button.classList.add("active");
+          renderCourseDetails(course);
+        }
+
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".course-item").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          renderCourseDetails(course);
+        });
+
+        courseList.appendChild(button);
+      });
+    };
+
+    const loadCourses = async () => {
+      const params = new URLSearchParams(new FormData(courseForm));
+      params.append("api_key", apiKey);
+
+      const res = await fetch(`/api/courses?${params}`);
+      const data = await res.json();
+      renderCourseList(data);
+    };
+
+    courseForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await loadCourses();
+    });
+
+    loadCourses();
+
+    const resourceForm = document.getElementById("resourceForm");
+    const resourceGrid = document.getElementById("resourceGrid");
+
+    const renderResources = (resources) => {
+      resourceGrid.innerHTML = "";
+
+      if (!resources.length) {
+        resourceGrid.innerHTML = '<div class="resource-card">No resources match your filters.</div>';
+        return;
+      }
+
+      resources.forEach((resource) => {
+        const card = document.createElement("article");
+        card.className = "resource-card";
+        card.innerHTML = `
+          <div class="badge success">${resource.category}</div>
+          <h4>${resource.title}</h4>
+          <p>${resource.description}</p>
+          <a href="${resource.url}" target="_blank" rel="noopener noreferrer">Open resource</a>
+        `;
+        resourceGrid.appendChild(card);
+      });
+    };
+
+    const loadResources = async () => {
+      const params = new URLSearchParams(new FormData(resourceForm));
+      params.append("api_key", apiKey);
+
+      const res = await fetch(`/api/resources?${params}`);
+      const data = await res.json();
+      renderResources(data);
+    };
+
+    resourceForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await loadResources();
+    });
+
+    loadResources();
   </script>
 </body>
 </html>
