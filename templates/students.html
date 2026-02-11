@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Brilliantica • Student Insights</title>
+  <title>STEMora • Student Insights</title>
   <style>
     :root {
       color-scheme: light;
@@ -397,7 +397,7 @@
     <div class="container nav-content">
       <div class="logo">
         <div class="logo-badge">B</div>
-        Brilliantica
+        STEMora
       </div>
       <div class="nav-links">
         <a href="#experience">Experience</a>
@@ -413,7 +413,7 @@
       <div class="hero-grid">
         <div>
           <div class="pill">✨ Personalized learning at scale</div>
-          <h1>Brilliantica inspires every learner with adaptive insights.</h1>
+          <h1>STEMora inspires physics and math learners with adaptive insights.</h1>
           <p>
             Transform raw student data into learning moments. Build clear progress stories,
             spotlight growth opportunities, and deliver curated practice plans in minutes.
@@ -460,7 +460,7 @@
 
     <section class="sections" id="analytics">
       <div class="section-card">
-        <h2>What makes Brilliantica feel different</h2>
+        <h2>What makes STEMora feel different</h2>
         <p class="muted">
           Intelligent curriculum sequencing meets joyful practice. Everything is
           designed to feel like an achievement, not a chore.
@@ -531,11 +531,40 @@
         </div>
       </div>
 
+      <div class="section-card">
+        <h2>Level studies roadmap</h2>
+        <p class="muted">
+          Structured study tracks for each level across physics and math.
+        </p>
+        <div class="features">
+          <div class="feature">
+            <span>L1</span>
+            <h4>Foundation</h4>
+            <p>Units, measurement, linear basics, and essential problem solving.</p>
+          </div>
+          <div class="feature">
+            <span>L2</span>
+            <h4>Core Builder</h4>
+            <p>Newton laws, equations, geometry, and weekly guided practice.</p>
+          </div>
+          <div class="feature">
+            <span>L3</span>
+            <h4>Mastery Path</h4>
+            <p>Quadratics, trigonometry, deeper modeling, and timed question sets.</p>
+          </div>
+          <div class="feature">
+            <span>L4</span>
+            <h4>Advanced Lab</h4>
+            <p>Electric circuits and complex applications with project-based study.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="section-card" id="students">
         <h2>Student analytics workspace</h2>
         <p class="muted">
-          Filter your roster and export tailored insights. Use the dashboard to
-          review progress, design learning plans, and follow up with students.
+          Filter your roster and export tailored insights. Track physics and math
+          levels, topics, lectures, question volume, and level study plans.
         </p>
 
         <form id="filterForm" class="filters">
@@ -563,6 +592,13 @@
               <tr>
                 <th>ID</th>
                 <th>Name</th>
+                <th>Subject</th>
+                <th>Level</th>
+                <th>Topic</th>
+                <th>Lecture</th>
+                <th>Questions</th>
+                <th>Interactive Diagram</th>
+                <th>Level Study</th>
                 <th>Grade</th>
                 <th>Momentum</th>
               </tr>
@@ -608,6 +644,13 @@
         tr.innerHTML = `
           <td>${row.id}</td>
           <td>${row.name}</td>
+          <td>${row.subject ?? "-"}</td>
+          <td>${row.level ?? "-"}</td>
+          <td>${row.topic ?? "-"}</td>
+          <td>${row.lecture ?? "-"}</td>
+          <td>${row.questions ?? "-"}</td>
+          <td>${row.interactive_diagram ?? "-"}</td>
+          <td>${row.level_study ?? "-"}</td>
           <td>${row.grade}</td>
           <td>${momentumBadge(row.grade)}</td>
         `;

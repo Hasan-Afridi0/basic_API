@@ -34,6 +34,10 @@ from functools import wraps
 
 from flask import render_template
 
+@app.route('/')
+def index():
+    return render_template('students.html')
+
 @app.route('/students-view')
 def students_view():
     return render_template('students.html')
