@@ -1,90 +1,211 @@
-📘 README.md Template — Student Results Dashboard API
-markdown
-Copy
-Edit
-# 📊 Student Results Dashboard API (Flask + Pandas)
+# 📊 STEMora Student Dashboard API
 
-A powerful REST API and lightweight web dashboard for managing student data, filtering records, paginating results, and exporting to CSV. Built using Python, Flask, and Pandas.
+A Flask + Pandas API with a built-in dashboard for exploring student progress in Physics and Math.
 
 ---
 
-## 🚀 Features
+## 🚀 What this API does
 
-- ✅ Upload & read student data from CSV
-- ✅ Filter by name, ID, grade ranges via query params
-- ✅ Pagination with `page` and `limit`
-- ✅ Download filtered data as `.csv`
-- ✅ API key authentication for protected routes
-- ✅ HTML frontend to search and display students
-- ✅ Clean JSON responses, ready for frontend use
-
----
-
-## 📦 Technologies Used
-
-- [x] Python 3
-- [x] Flask (API Framework)
-- [x] Pandas (Data handling)
-- [x] HTML + JS (Frontend)
-- [x] Postman (Testing)
-- [x] CSV (for input/output)
+This API lets you:
+- authenticate requests with an API key
+- view student data in JSON
+- filter students by name/id/grade range
+- paginate student records
+- get top students and average grade
+- download filtered records as CSV
+- upload a student CSV file and get parsed JSON
+- fetch coffee sample data (with optional type filter)
+- open a web dashboard at `/` or `/students-view`
 
 ---
 
 ## 🔐 Authentication
 
-All API routes are protected using a simple API Key.
+Most endpoints require an `api_key` query parameter:
 
-Append your key to all requests:
-?api_key=12345
-You can modify the `API_KEY` in `app.py`.
+`api_key=12345`
 
----
+> Example: `http://127.0.0.1:5000/api/students?api_key=12345`
 
-## 🔗 API Endpoints
-
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET    | `/api/hello` | Basic test message |
-| GET    | `/api/greet?name=Sultan` | Custom greeting |
-| GET    | `/api/students` | Fetch all or filtered students |
-| GET    | `/api/students/paginated?page=1&limit=5` | Paginated results |
-| GET    | `/api/students/top?count=3` | Top performers |
-| GET    | `/api/students/average-grade` | Average grade |
-| GET    | `/api/students/download` | Download filtered students as `.csv` |
-| GET    | `/students-view` | Web page for searching and viewing students |
+Protected endpoints are guarded by `require_api_key` in `app.py`.
 
 ---
 
-## 📁 Folder Structure
+## 🧠 API functions (by endpoint)
 
+### 1) Health / greeting functions
+
+#### `GET /api/hello`
+Returns a basic test response.
+
+**Response example**
+```json
+{"message": "Hello, world!"}
+```
+
+#### `GET /api/greet?name=Sultan`
+Returns a personalized greeting using `name` query param.
+
+---
+
+### 2) Student data functions
+
+#### `GET /api/students`
+Returns all students or filtered students.
+
+**Supported query params**
+- `name` (exact match, case-insensitive)
+- `id`
+- `min_grade`
+- `max_grade`
+
+#### `GET /api/students/top?count=5`
+Returns top N students sorted by grade descending.
+
+#### `GET /api/students/average-grade`
+Returns class average grade.
+
+#### `GET /api/students/paginated?page=1&limit=5`
+Returns paginated student data with metadata:
+- `page`, `limit`, `total_students`, `total_pages`
+- `has_next`, `has_prev`
+- `next_url`, `prev_url`
+- `next_page_count`
+
+> Note: this route is currently public (no API key required).
+
+---
+
+### 3) CSV export and upload functions
+
+#### `GET /api/students/download`
+Downloads filtered student results as a CSV file.
+
+Uses the same filters as `/api/students`:
+- `name`, `id`, `min_grade`, `max_grade`
+
+#### `POST /api/upload-students`
+Uploads a CSV file and returns parsed rows as JSON.
+
+**Request type:** `multipart/form-data`
+- form field: `file`
+- only `.csv` files accepted
+
+---
+
+### 4) Course database functions
+
+#### `GET /api/courses`
+Returns course rows from a SQLite database that include:
+- `subject`
+- `level`
+- `topic`
+- `definition`
+- `equation`
+- `question`
+- `diagram_title`
+
+**Optional query params**
+- `subject` (e.g. `Physics` or `Math`)
+- `level` (e.g. `Level 1`, `Level 2`)
+
+---
+
+### 5) Coffee sample data function
+
+#### `GET /api/coffee-data`
+Returns all coffee records, or filtered by:
+- `coffee_type`
+
+---
+
+### 6) Free physics resource database functions
+
+#### `GET /api/resources`
+Returns built-in website resources (no external dependency) grouped by category.
+
+Fields:
+- `category` (`Universal`, `Equations`, `Definitions`)
+- `title`
+- `description`
+- `equation`
+- `practice_prompt`
+- `diagram_steps`
+
+Optional query params:
+- `category`
+- `search` (matches title/description)
+
+---
+
+## 🖥️ Dashboard routes
+
+- `GET /` → renders `templates/students.html`
+- `GET /students-view` → renders `templates/students.html`
+
+The dashboard includes:
+- filtering form
+- export CSV button
+- momentum badges
+- interactive learning-loop diagram
+- level studies roadmap
+- course database viewer (definitions + equations)
+- interactive question diagram cards
+- built-in physics resource explorer with internal definitions/equations/diagram prompts
+
+---
+
+## 📁 Project structure
+
+```text
 .
 ├── app.py
-├── templates/
-│ └── students.html
-├── static/ (optional for styles/scripts)
-├── students.csv (sample data)
-
-Copy
-Edit
+├── requirements.txt
+├── data/
+│   ├── students.csv
+│   └── coffee.csv
+└── templates/
+    └── students.html
+```
 
 ---
 
-## 💻 Local Setup
+## 🔗 Repository URL
 
-1. Clone the repo:
-git clone https://github.com/yourusername/student-dashboard-api.git
-cd student-dashboard-api
+If your repository URL was modified, use the updated clone URL below:
 
-Create a virtual environment:
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+```bash
+git clone https://github.com/yourusername/basic_API.git
+cd basic_API
+```
 
-Install dependencies:
+> Replace `yourusername` with your GitHub username or organization.
+
+---
+
+## ⚙️ Run locally
+
+1. Install dependencies:
+```bash
 pip install -r requirements.txt
+```
 
-Run the Flask server:
+2. Start server:
+```bash
 python app.py
+```
 
-Open in browser:
-http://127.0.0.1:5000/students-view
+3. Open dashboard:
+- `http://127.0.0.1:5000/`
+- or `http://127.0.0.1:5000/students-view`
+
+---
+
+## 🧪 Quick curl examples
+
+```bash
+curl "http://127.0.0.1:5000/api/hello?api_key=12345"
+curl "http://127.0.0.1:5000/api/students?api_key=12345&min_grade=80"
+curl "http://127.0.0.1:5000/api/students/top?api_key=12345&count=3"
+curl "http://127.0.0.1:5000/api/students/average-grade?api_key=12345"
+```

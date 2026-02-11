@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, send_file, render_template, Response
 import pandas as pd
 import os
+import sqlite3
 
 # 🔐 API Key
 API_KEY = "12345"
@@ -8,11 +9,114 @@ API_KEY = "12345"
 
 from flask import render_template
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+COURSES_DB_PATH = os.path.join(DATA_DIR, 'courses.db')
+
+def load_csv(path, *, name):
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"Missing {name} data at {path}. Please ensure the CSV exists."
+        )
+    return pd.read_csv(path)
+
 # Load CSV
-students_df = pd.read_csv('./practice/My_Work/students.csv')
+students_path = os.path.join(DATA_DIR, 'students.csv')
+students_df = load_csv(students_path, name="students")
 students_df.columns = students_df.columns.str.strip().str.lower()
-coffee_df = pd.read_csv('./complete-pandas-tutorial/warmup-data/coffee.csv')
+
+coffee_path = os.path.join(DATA_DIR, 'coffee.csv')
+coffee_df = load_csv(coffee_path, name="coffee")
 coffee_df.rename(columns={'coffee type': 'coffee_type'}, inplace=True)
+
+def init_courses_database(db_path):
+    seed_courses = [
+        ("Physics", "Level 1", "Kinematics", "Motion described by displacement, velocity, and acceleration.", "v = u + at", "How does acceleration affect velocity over time?", "Velocity-Time Slope"),
+        ("Physics", "Level 2", "Forces", "Net force determines acceleration based on Newton's second law.", "F = ma", "What happens to acceleration if force doubles and mass stays fixed?", "Force-Acceleration Map"),
+        ("Physics", "Level 3", "Energy", "Energy is conserved while transforming between forms.", "W = ΔKE", "How can work done change an object's kinetic energy?", "Energy Transfer Cycle"),
+        ("Math", "Level 1", "Linear Expressions", "Linear forms model constant-rate change.", "y = mx + b", "How does changing m affect the graph slope?", "Slope Intercept Diagram"),
+        ("Math", "Level 2", "Quadratics", "Quadratic functions create parabolic relationships.", "x = (-b ± √(b² - 4ac)) / 2a", "How does the discriminant affect number of roots?", "Quadratic Roots Tree"),
+        ("Math", "Level 3", "Trigonometry", "Trigonometric ratios link angles and side lengths.", "sin²θ + cos²θ = 1", "How does cosine change as angle increases from 0° to 90°?", "Unit Circle Progression")
+    ]
+
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS courses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                subject TEXT NOT NULL,
+                level TEXT NOT NULL,
+                topic TEXT NOT NULL,
+                definition TEXT NOT NULL,
+                equation TEXT NOT NULL,
+                question TEXT NOT NULL,
+                diagram_title TEXT NOT NULL
+            )
+            """
+        )
+
+        existing_rows = conn.execute("SELECT COUNT(*) FROM courses").fetchone()[0]
+        if existing_rows == 0:
+            conn.executemany(
+                """
+                INSERT INTO courses (subject, level, topic, definition, equation, question, diagram_title)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                seed_courses,
+            )
+
+init_courses_database(COURSES_DB_PATH)
+
+def init_resource_database(db_path):
+    seed_resources = [
+        ("Universal", "Mechanics Definition Atlas", "Curriculum-first definitions that map motion, force, and energy concepts together.", "F = ma", "Explain how net force changes motion in one sentence.", "Start from motion state → apply force vector → observe acceleration."),
+        ("Universal", "Thermal Physics Core", "Built-in concept bank for temperature, heat transfer, and thermodynamic systems.", "Q = mcΔT", "What variables increase heat needed for a temperature change?", "Choose material → set mass → adjust ΔT → view heat requirement."),
+        ("Universal", "Electricity & Fields Studio", "Integrated notes for electric fields, current, voltage, and circuits.", "V = IR", "How does increasing resistance affect current at fixed voltage?", "Set voltage source → vary resistor → observe current flow arrows."),
+        ("Equations", "Kinematics Equation Set", "SUVAT equation pack with usage hints and variable definitions.", "s = ut + 1/2 at²", "When should you use this equation instead of v = u + at?", "Input known variables → highlight unknown → generate solve path."),
+        ("Equations", "Momentum & Energy Toolbox", "Conservation equations for momentum and energy with worked structures.", "p = mv", "How does doubling mass impact momentum at constant velocity?", "Compare two objects → compute momentum bars → inspect conservation."),
+        ("Equations", "Waves and Optics Formula Board", "Frequency, wavelength, and wave speed equations for quick retrieval.", "v = fλ", "If frequency rises while speed stays fixed, what happens to wavelength?", "Lock wave speed → increase frequency slider → shrink wavelength trace."),
+        ("Definitions", "Physics Terms 250", "Internal glossary for common school and exam physics terminology.", "ρ = m/V", "Define density and identify each variable in the equation.", "Pick a term card → reveal definition → test with quick prompt."),
+        ("Definitions", "Units & Dimensions Mentor", "SI units, dimensions, and conversion logic in one place.", "[Force] = MLT⁻²", "Why is dimensional analysis useful for checking answers?", "Select quantity → inspect unit tree → validate equation dimensions."),
+        ("Definitions", "Relativity Mini Dictionary", "Concise modern-physics terms focused on spacetime and relativity basics.", "E = mc²", "What does mass-energy equivalence imply conceptually?", "Toggle rest mass and velocity context → inspect energy interpretation.")
+    ]
+
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS resources (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                category TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                equation TEXT NOT NULL,
+                practice_prompt TEXT NOT NULL,
+                diagram_steps TEXT NOT NULL
+            )
+            """
+        )
+
+        columns = {
+            row[1]
+            for row in conn.execute("PRAGMA table_info(resources)").fetchall()
+        }
+
+        if "equation" not in columns:
+            conn.execute("ALTER TABLE resources ADD COLUMN equation TEXT NOT NULL DEFAULT ''")
+        if "practice_prompt" not in columns:
+            conn.execute("ALTER TABLE resources ADD COLUMN practice_prompt TEXT NOT NULL DEFAULT ''")
+        if "diagram_steps" not in columns:
+            conn.execute("ALTER TABLE resources ADD COLUMN diagram_steps TEXT NOT NULL DEFAULT ''")
+
+        conn.execute("DELETE FROM resources")
+        conn.executemany(
+            """
+            INSERT INTO resources (category, title, description, equation, practice_prompt, diagram_steps)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            seed_resources,
+        )
+
+init_resource_database(COURSES_DB_PATH)
 
 app = Flask(__name__)
 
@@ -20,6 +124,10 @@ app = Flask(__name__)
 from functools import wraps
 
 from flask import render_template
+
+@app.route('/')
+def index():
+    return render_template('students.html')
 
 @app.route('/students-view')
 def students_view():
@@ -130,6 +238,64 @@ def get_coffee_data():
         data = coffee_df.to_dict(orient='records')
 
     return jsonify(data)
+
+@app.route('/api/courses', methods=['GET'])
+@require_api_key
+def get_courses_data():
+    subject = request.args.get('subject')
+    level = request.args.get('level')
+
+    query = """
+        SELECT id, subject, level, topic, definition, equation, question, diagram_title
+        FROM courses
+        WHERE 1=1
+    """
+    params = []
+
+    if subject:
+        query += " AND subject = ?"
+        params.append(subject)
+    if level:
+        query += " AND level = ?"
+        params.append(level)
+
+    query += " ORDER BY subject, level, id"
+
+    with sqlite3.connect(COURSES_DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(query, params).fetchall()
+
+    return jsonify([dict(row) for row in rows])
+
+@app.route('/api/resources', methods=['GET'])
+@require_api_key
+def get_resource_data():
+    category = request.args.get('category')
+    search = request.args.get('search')
+
+    query = """
+        SELECT id, category, title, description, equation, practice_prompt, diagram_steps
+        FROM resources
+        WHERE 1=1
+    """
+    params = []
+
+    if category:
+        query += " AND category = ?"
+        params.append(category)
+
+    if search:
+        query += " AND (title LIKE ? OR description LIKE ?)"
+        wildcard = f"%{search}%"
+        params.extend([wildcard, wildcard])
+
+    query += " ORDER BY category, title"
+
+    with sqlite3.connect(COURSES_DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(query, params).fetchall()
+
+    return jsonify([dict(row) for row in rows])
 
 # Set max upload size (optional)
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB max
