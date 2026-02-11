@@ -8,10 +8,23 @@ API_KEY = "12345"
 
 from flask import render_template
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+
+def load_csv(path, *, name):
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"Missing {name} data at {path}. Please ensure the CSV exists."
+        )
+    return pd.read_csv(path)
+
 # Load CSV
-students_df = pd.read_csv('./practice/My_Work/students.csv')
+students_path = os.path.join(DATA_DIR, 'students.csv')
+students_df = load_csv(students_path, name="students")
 students_df.columns = students_df.columns.str.strip().str.lower()
-coffee_df = pd.read_csv('./complete-pandas-tutorial/warmup-data/coffee.csv')
+
+coffee_path = os.path.join(DATA_DIR, 'coffee.csv')
+coffee_df = load_csv(coffee_path, name="coffee")
 coffee_df.rename(columns={'coffee type': 'coffee_type'}, inplace=True)
 
 app = Flask(__name__)
@@ -20,6 +33,10 @@ app = Flask(__name__)
 from functools import wraps
 
 from flask import render_template
+
+@app.route('/')
+def index():
+    return render_template('students.html')
 
 @app.route('/students-view')
 def students_view():
