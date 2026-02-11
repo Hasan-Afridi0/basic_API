@@ -385,6 +385,124 @@
       margin-bottom: 10px;
     }
 
+    .course-filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+      align-items: end;
+    }
+
+    .course-filters select {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fafaff;
+    }
+
+    .course-layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.4fr) minmax(260px, 1fr);
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .course-list {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      background: white;
+    }
+
+    .course-item {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+      padding: 14px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .course-item:last-child {
+      border-bottom: none;
+    }
+
+    .course-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .course-item.active {
+      background: #f1efff;
+    }
+
+    .question-diagram {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: white;
+      padding: 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .equation {
+      font-family: "Fira Code", monospace;
+      background: #f6f8ff;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--accent-strong);
+      font-size: 0.9rem;
+    }
+
+    .resource-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+      align-items: end;
+    }
+
+    .resource-controls input,
+    .resource-controls select {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fafaff;
+    }
+
+    .resource-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+    }
+
+    .resource-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      background: #fff;
+      display: grid;
+      gap: 8px;
+    }
+
+    .resource-card a {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    @media (max-width: 860px) {
+      .course-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 720px) {
       .nav-links {
         display: none;
@@ -560,6 +678,72 @@
         </div>
       </div>
 
+      <div class="section-card" id="courses">
+        <h2>Course database: definitions, equations, and question diagrams</h2>
+        <p class="muted">
+          Pull curriculum content from the course database and interact with each question diagram.
+        </p>
+
+        <form id="courseForm" class="course-filters">
+          <div>
+            <label for="course-subject">Subject</label>
+            <select id="course-subject" name="subject">
+              <option value="">All subjects</option>
+              <option value="Physics">Physics</option>
+              <option value="Math">Math</option>
+            </select>
+          </div>
+          <div>
+            <label for="course-level">Level</label>
+            <select id="course-level" name="level">
+              <option value="">All levels</option>
+              <option value="Level 1">Level 1</option>
+              <option value="Level 2">Level 2</option>
+              <option value="Level 3">Level 3</option>
+              <option value="Level 4">Level 4</option>
+            </select>
+          </div>
+          <button class="button primary" type="submit">Load courses</button>
+        </form>
+
+        <div class="course-layout">
+          <div id="courseList" class="course-list"></div>
+          <div class="question-diagram" aria-live="polite">
+            <h3 id="courseTopic">Choose a course item</h3>
+            <p id="courseDefinition">Definition will appear here.</p>
+            <div class="equation" id="courseEquation">Equation</div>
+            <p id="courseQuestion">Question prompt will appear here.</p>
+            <div class="badge success" id="courseDiagram">Interactive diagram title</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card" id="resources">
+        <h2>Top free physics resources database</h2>
+        <p class="muted">
+          Curated universal references, equation repositories, and definition libraries.
+        </p>
+
+        <form id="resourceForm" class="resource-controls">
+          <div>
+            <label for="resource-category">Category</label>
+            <select id="resource-category" name="category">
+              <option value="">All categories</option>
+              <option value="Universal">Universal</option>
+              <option value="Equations">Equations</option>
+              <option value="Definitions">Definitions</option>
+            </select>
+          </div>
+          <div>
+            <label for="resource-search">Search</label>
+            <input id="resource-search" name="search" placeholder="e.g. formulas" />
+          </div>
+          <button class="button primary" type="submit">Load resources</button>
+        </form>
+
+        <div id="resourceGrid" class="resource-grid"></div>
+      </div>
+
       <div class="section-card" id="students">
         <h2>Student analytics workspace</h2>
         <p class="muted">
@@ -679,6 +863,110 @@
         diagramMetric.textContent = node.dataset.metric;
       });
     });
+
+    const courseForm = document.getElementById("courseForm");
+    const courseList = document.getElementById("courseList");
+    const courseTopic = document.getElementById("courseTopic");
+    const courseDefinition = document.getElementById("courseDefinition");
+    const courseEquation = document.getElementById("courseEquation");
+    const courseQuestion = document.getElementById("courseQuestion");
+    const courseDiagram = document.getElementById("courseDiagram");
+
+    const renderCourseDetails = (course) => {
+      courseTopic.textContent = `${course.subject} • ${course.level} • ${course.topic}`;
+      courseDefinition.textContent = course.definition;
+      courseEquation.textContent = course.equation;
+      courseQuestion.textContent = `Question: ${course.question}`;
+      courseDiagram.textContent = `Diagram: ${course.diagram_title}`;
+    };
+
+    const renderCourseList = (courses) => {
+      courseList.innerHTML = "";
+
+      if (!courses.length) {
+        courseList.innerHTML = '<div class="course-item">No courses match this filter.</div>';
+        return;
+      }
+
+      courses.forEach((course, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "course-item";
+        button.innerHTML = `
+          <strong>${course.subject} • ${course.level}</strong>
+          <div>${course.topic}</div>
+        `;
+
+        if (index === 0) {
+          button.classList.add("active");
+          renderCourseDetails(course);
+        }
+
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".course-item").forEach((item) => item.classList.remove("active"));
+          button.classList.add("active");
+          renderCourseDetails(course);
+        });
+
+        courseList.appendChild(button);
+      });
+    };
+
+    const loadCourses = async () => {
+      const params = new URLSearchParams(new FormData(courseForm));
+      params.append("api_key", apiKey);
+
+      const res = await fetch(`/api/courses?${params}`);
+      const data = await res.json();
+      renderCourseList(data);
+    };
+
+    courseForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await loadCourses();
+    });
+
+    loadCourses();
+
+    const resourceForm = document.getElementById("resourceForm");
+    const resourceGrid = document.getElementById("resourceGrid");
+
+    const renderResources = (resources) => {
+      resourceGrid.innerHTML = "";
+
+      if (!resources.length) {
+        resourceGrid.innerHTML = '<div class="resource-card">No resources match your filters.</div>';
+        return;
+      }
+
+      resources.forEach((resource) => {
+        const card = document.createElement("article");
+        card.className = "resource-card";
+        card.innerHTML = `
+          <div class="badge success">${resource.category}</div>
+          <h4>${resource.title}</h4>
+          <p>${resource.description}</p>
+          <a href="${resource.url}" target="_blank" rel="noopener noreferrer">Open resource</a>
+        `;
+        resourceGrid.appendChild(card);
+      });
+    };
+
+    const loadResources = async () => {
+      const params = new URLSearchParams(new FormData(resourceForm));
+      params.append("api_key", apiKey);
+
+      const res = await fetch(`/api/resources?${params}`);
+      const data = await res.json();
+      renderResources(data);
+    };
+
+    resourceForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await loadResources();
+    });
+
+    loadResources();
   </script>
 </body>
 </html>
